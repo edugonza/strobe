@@ -15,6 +15,9 @@ process discovery, process performance analysis, compliance and conformance anal
 # Install dependencies (including test group)
 uv sync --group test
 
+# Install dev dependencies (includes linting, formatting, pre-commit)
+uv sync --group dev
+
 # Run all tests
 uv run pytest
 
@@ -27,6 +30,31 @@ uv run pytest tests/path/to/test_file.py::test_name
 # Run tests matching a keyword
 uv run pytest -k "keyword"
 ```
+
+## Pre-commit Hooks
+
+Pre-commit hooks are configured to run automatically before each commit. Install them with:
+
+```bash
+pre-commit install
+```
+
+Hooks run:
+- **ruff check**: Linting with Ruff (auto-fixes when possible)
+- **ruff format**: Code formatting with Ruff
+- **mypy**: Static type checking
+- **Basic checks**: Trailing whitespace, end-of-file fixers, YAML/JSON validation, merge conflict detection
+
+To run hooks manually on all files:
+
+```bash
+pre-commit run --all-files
+```
+
+## CI/CD
+
+GitHub Actions workflows run the same checks on pull requests and pushes to `main`:
+- `.github/workflows/ci.yml`: Runs linting, formatting, type checking, and tests
 
 ## Architecture
 
