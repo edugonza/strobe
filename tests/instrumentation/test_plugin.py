@@ -1,8 +1,6 @@
 """Tests for StrobePlugin — ADK plugin that captures callbacks."""
-import asyncio
-from datetime import datetime, timezone
+
 from types import SimpleNamespace
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -31,6 +29,7 @@ def _make_tool(name="search"):
 
 
 # ── tool callbacks ──────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_tool_event_recorded():
@@ -96,6 +95,7 @@ async def test_multiple_tool_calls_same_case():
 
 # ── LLM callbacks ───────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_llm_event_recorded():
     plugin = StrobePlugin()
@@ -144,6 +144,7 @@ async def test_llm_event_tokens():
 
 # ── Agent callbacks ──────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_agent_event_recorded():
     plugin = StrobePlugin()
@@ -172,6 +173,7 @@ async def test_agent_event_has_duration():
 
 # ── Combined scenario ────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_full_invocation_event_count():
     plugin = StrobePlugin()
@@ -197,6 +199,7 @@ async def test_full_invocation_event_count():
 
 
 # ── Property and export ──────────────────────────────────────────────────────
+
 
 def test_event_log_property():
     plugin = StrobePlugin()

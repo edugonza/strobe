@@ -43,4 +43,6 @@ def discover_process_model(
     elif algorithm == "alpha":
         return pm4py.discover_petri_net_alpha(df)
     else:
-        raise ValueError(f"Unknown algorithm: {algorithm!r}. Choose 'inductive' or 'alpha'.")
+        raise ValueError(
+            f"Unknown algorithm: {algorithm!r}. Choose 'inductive' or 'alpha'."
+        )

@@ -1,7 +1,7 @@
 """Tests for conformance checking wrappers."""
+
 import pandas as pd
 import pm4py
-import pytest
 
 from strobe.analysis.conformance import check_conformance
 from strobe.analysis.discovery import discover_process_model
@@ -38,7 +38,12 @@ def test_check_conformance_returns_expected_keys():
     df = _sample_df()
     net, im, fm = discover_process_model(df)
     result = check_conformance(df, net, im, fm)
-    assert set(result.keys()) == {"fitness", "precision", "generalization", "simplicity"}
+    assert set(result.keys()) == {
+        "fitness",
+        "precision",
+        "generalization",
+        "simplicity",
+    }
 
 
 def test_check_conformance_values_are_floats():

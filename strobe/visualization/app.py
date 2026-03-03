@@ -6,6 +6,7 @@ Run directly::
 
 Or from Python via :func:`launch_dashboard`.
 """
+
 from __future__ import annotations
 
 import os
@@ -42,8 +43,9 @@ def launch_dashboard(xes_path: str | Path | None = None) -> subprocess.Popen:
 # Everything below only runs when this file is executed by Streamlit.
 # ---------------------------------------------------------------------------
 
+
 def _run_app() -> None:  # pragma: no cover
-    import io
+    from typing import Literal
 
     import pandas as pd
     import pm4py
@@ -72,14 +74,11 @@ def _run_app() -> None:  # pragma: no cover
         uploaded = st.file_uploader("Upload XES file", type=["xes"])
 
         xes_source: bytes | None = None
-        source_label = ""
         if uploaded is not None:
             xes_source = uploaded.read()
-            source_label = uploaded.name
         elif env_path:
             st.info(f"Using env: {env_path}")
             xes_source = Path(env_path).read_bytes()
-            source_label = env_path
 
         st.header("Discovery")
         algorithm = st.selectbox("Algorithm", ["inductive", "alpha"])
@@ -105,7 +104,7 @@ def _run_app() -> None:  # pragma: no cover
         return df
 
     @st.cache_data(show_spinner="Discovering process model…")
-    def _discover(raw: bytes, algo: str, noise: float):
+    def _discover(raw: bytes, algo: Literal["inductive", "alpha"], noise: float):
         df = _load_df(raw, algo, noise)
         dfg_result = discover_dfg(df)
         model_result = discover_process_model(df, algorithm=algo, noise_threshold=noise)
@@ -131,15 +130,15 @@ def _run_app() -> None:  # pragma: no cover
             )
         with col2:
             st.subheader("Petri Net")
-            st.plotly_chart(
-                plot_petri_net(net, im, fm), use_container_width=True
-            )
+            st.plotly_chart(plot_petri_net(net, im, fm), use_container_width=True)
 
     with tab_throughput:
         st.subheader("Per-case throughput times")
         tt = throughput_times(df)
         st.plotly_chart(plot_throughput_times(tt), use_container_width=True)
-        st.dataframe(tt.rename("duration").dt.total_seconds().rename("duration_s").reset_index())
+        st.dataframe(
+            tt.rename("duration").dt.total_seconds().rename("duration_s").reset_index()
+        )
 
     with tab_activities:
         st.subheader("Activity statistics")
@@ -165,5 +164,7 @@ def _run_app() -> None:  # pragma: no cover
         col_simp.metric("Simplicity", f"{scores['simplicity']:.3f}")
 
 
-if __name__ == "__main__" or os.environ.get("STREAMLIT_SCRIPT_RUN_CTX"):  # pragma: no cover
+if __name__ == "__main__" or os.environ.get(
+    "STREAMLIT_SCRIPT_RUN_CTX"
+):  # pragma: no cover
     _run_app()

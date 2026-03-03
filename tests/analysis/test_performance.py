@@ -1,4 +1,5 @@
 """Tests for performance analysis functions."""
+
 from datetime import datetime, timedelta, timezone
 
 import pandas as pd
@@ -122,4 +123,5 @@ def test_activity_statistics_no_duration_col():
     stats = activity_statistics(df)
     assert len(stats) == 2
     import math
+
     assert all(math.isnan(v) for v in stats["mean_duration_s"])

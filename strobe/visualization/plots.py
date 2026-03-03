@@ -1,4 +1,5 @@
 """Pure Plotly figure factories — no Streamlit dependency."""
+
 from __future__ import annotations
 
 from collections import defaultdict, deque
@@ -32,7 +33,6 @@ def _hierarchical_layout(G: nx.DiGraph, spacing: float = 2.0) -> dict:
 
     while queue:
         node = queue.popleft()
-        current_layer = layer_assignment[node]
 
         for successor in G.successors(node):
             # Assign to max layer of predecessors + 1
@@ -45,7 +45,10 @@ def _hierarchical_layout(G: nx.DiGraph, spacing: float = 2.0) -> dict:
                 layer_assignment.get(successor, -1), new_layer
             )
 
-            if successor not in layer_assignment or layer_assignment[successor] == new_layer:
+            if (
+                successor not in layer_assignment
+                or layer_assignment[successor] == new_layer
+            ):
                 queue.append(successor)
 
     # Group nodes by layer
@@ -315,9 +318,7 @@ def plot_conformance(scores: dict[str, float]) -> go.Figure:
     """Return a horizontal bar chart of the four conformance metrics."""
     metrics = ["fitness", "precision", "generalization", "simplicity"]
     values = [scores.get(m, 0.0) for m in metrics]
-    colors = [
-        f"rgba({int(255*(1-v))},{int(200*v)},80,0.85)" for v in values
-    ]
+    colors = [f"rgba({int(255*(1-v))},{int(200*v)},80,0.85)" for v in values]
 
     fig = go.Figure(
         go.Bar(

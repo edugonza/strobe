@@ -24,7 +24,9 @@ def check_conformance(
     dict with keys ``fitness``, ``precision``, ``generalization``, ``simplicity``.
     """
     fitness = pm4py.fitness_token_based_replay(df, net, initial_marking, final_marking)
-    precision = pm4py.precision_token_based_replay(df, net, initial_marking, final_marking)
+    precision = pm4py.precision_token_based_replay(
+        df, net, initial_marking, final_marking
+    )
     generalization = pm4py.generalization_tbr(df, net, initial_marking, final_marking)
     simplicity = pm4py.simplicity_petri_net(net, initial_marking, final_marking)
 

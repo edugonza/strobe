@@ -40,7 +40,12 @@ def activity_statistics(df: pd.DataFrame) -> pd.DataFrame:
 
     stats = (
         df.groupby(activity_col)[duration_col]
-        .agg(count="count", mean_duration_s="mean", min_duration_s="min", max_duration_s="max")
+        .agg(
+            count="count",
+            mean_duration_s="mean",
+            min_duration_s="min",
+            max_duration_s="max",
+        )
         .reset_index()
     )
     stats = stats.rename(columns={activity_col: "activity"})

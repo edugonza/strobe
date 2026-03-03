@@ -1,9 +1,9 @@
 """Tests for EventLog — internal accumulator and XES exporter."""
+
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
 from strobe.instrumentation.event_log import EventLog
 
@@ -90,5 +90,9 @@ def test_xes_round_trip(tmp_path: Path):
     df_loaded = loaded.to_dataframe()
 
     assert len(df_loaded) == len(df_orig)
-    assert set(df_loaded[EventLog.CASE_ID].unique()) == set(df_orig[EventLog.CASE_ID].unique())
-    assert set(df_loaded[EventLog.ACTIVITY].unique()) == set(df_orig[EventLog.ACTIVITY].unique())
+    assert set(df_loaded[EventLog.CASE_ID].unique()) == set(
+        df_orig[EventLog.CASE_ID].unique()
+    )
+    assert set(df_loaded[EventLog.ACTIVITY].unique()) == set(
+        df_orig[EventLog.ACTIVITY].unique()
+    )
