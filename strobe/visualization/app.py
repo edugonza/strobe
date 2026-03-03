@@ -81,7 +81,9 @@ def _run_app() -> None:  # pragma: no cover
             xes_source = Path(env_path).read_bytes()
 
         st.header("Discovery")
-        algorithm = st.selectbox("Algorithm", ["inductive", "alpha"])
+        algorithm: Literal["inductive", "alpha"] = st.selectbox(
+            "Algorithm", ["inductive", "alpha"]
+        )
         noise_threshold = 0.0
         if algorithm == "inductive":
             noise_threshold = st.slider(
@@ -150,7 +152,9 @@ def _run_app() -> None:  # pragma: no cover
         st.subheader("Conformance scores")
 
         @st.cache_data(show_spinner="Running conformance check…")
-        def _conformance(raw: bytes, algo: str, noise: float) -> dict[str, float]:
+        def _conformance(
+            raw: bytes, algo: Literal["inductive", "alpha"], noise: float
+        ) -> dict[str, float]:
             df2, _, (net2, im2, fm2) = _discover(raw, algo, noise)
             return check_conformance(df2, net2, im2, fm2)
 
