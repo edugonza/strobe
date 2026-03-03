@@ -1,12 +1,26 @@
 [project]
 name = "strobe"
-dynamic = ["version"]
-description = "Add your description here"
+version = "0.0.1"
+description = "Process Mining & Agent Instrumentation for AI Agent Frameworks"
 requires-python = ">=3.13"
 dependencies = [
+    "google-adk>=1.0.0",
+    "pm4py>=2.7.0",
+    "pandas>=2.0.0",
+    "streamlit>=1.32.0",
+    "plotly>=5.18.0",
 ]
 
 [dependency-groups]
 test = [
     "pytest>=9.0.2",
+    "pytest-asyncio>=0.23.0",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

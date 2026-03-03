@@ -30,7 +30,83 @@ uv run pytest -k "keyword"
 
 ## Architecture
 
-The library has two main layers:
+The library has three main layers:
 
 - **Instrumentation** (`strobe.instrumentation`): decorators/hooks/callbacks that integrate with agent frameworks to capture execution events (e.g. tool calls, LLM invocations, agent steps) and record them as event logs.
 - **Analysis** (`strobe.analysis`): process mining tools that operate on the recorded event logs — process discovery, performance analysis, conformance checking, and other process mining techniques.
+- **Visualization** (`strobe.visualization`): interactive Plotly charts and a Streamlit dashboard for exploring analysis results.
+
+### Module layout
+
+```
+strobe/
+  __init__.py                        # re-exports StrobePlugin + key analysis/viz functions
+  instrumentation/
+    __init__.py                      # exports StrobePlugin, EventLog
+    event_log.py                     # EventLog: internal buffer → DataFrame / XES
+    plugin.py                        # StrobePlugin: ADK BasePlugin implementation
+  analysis/
+    __init__.py                      # exports discover_dfg, discover_process_model,
+                                     #   check_conformance, throughput_times, activity_statistics
+    discovery.py                     # DFG and Petri net discovery wrappers
+    conformance.py                   # token-based replay conformance checking
+    performance.py                   # throughput times, per-activity stats
+  visualization/
+    __init__.py                      # exports plot_* functions + launch_dashboard
+    plots.py                         # pure Plotly figure factories (no Streamlit import)
+    app.py                           # Streamlit dashboard + launch_dashboard()
+
+tests/
+  instrumentation/
+    test_event_log.py
+    test_plugin.py
+  analysis/
+    test_discovery.py
+    test_conformance.py
+    test_performance.py
+  visualization/
+    test_plots.py
+```
+
+### Key types
+
+| Symbol | Module | Description |
+|---|---|---|
+| `EventLog` | `strobe.instrumentation.event_log` | Accumulates events; exports XES / DataFrame |
+| `StrobePlugin` | `strobe.instrumentation.plugin` | ADK `BasePlugin`; records tool/LLM/agent callbacks |
+| `discover_dfg` | `strobe.analysis.discovery` | Returns `(dfg, start_acts, end_acts)` |
+| `discover_process_model` | `strobe.analysis.discovery` | Returns `(net, im, fm)`; supports inductive & alpha |
+| `check_conformance` | `strobe.analysis.conformance` | Returns fitness/precision/generalization/simplicity |
+| `throughput_times` | `strobe.analysis.performance` | Per-case duration `Series` |
+| `activity_statistics` | `strobe.analysis.performance` | Per-activity count + duration stats `DataFrame` |
+| `plot_dfg` | `strobe.visualization.plots` | Plotly DFG figure (nodes + weighted edges) |
+| `plot_petri_net` | `strobe.visualization.plots` | Plotly Petri net figure (places/transitions) |
+| `plot_throughput_times` | `strobe.visualization.plots` | Violin plot of case durations |
+| `plot_activity_statistics` | `strobe.visualization.plots` | Dual-axis bar chart (count + mean duration) |
+| `plot_conformance` | `strobe.visualization.plots` | Horizontal bar chart of 4 conformance metrics |
+| `launch_dashboard` | `strobe.visualization.app` | Starts Streamlit dashboard via subprocess |
+
+### Running the dashboard
+
+```bash
+# Direct
+streamlit run strobe/visualization/app.py
+
+# From Python (programmatic, e.g. after saving a XES file)
+from strobe import launch_dashboard
+proc = launch_dashboard(xes_path="path/to/log.xes")
+```
+
+### XES event attribute mapping
+
+| ADK concept | XES attribute | Example |
+|---|---|---|
+| `invocation_id` | `case:concept:name` | `"inv-abc123"` |
+| activity | `concept:name` | `"tool:search"`, `"llm:gemini-2.0"`, `"agent:root_agent"` |
+| completion time | `time:timestamp` | `datetime(...)` |
+| start time | `strobe:start_time` | ISO string |
+| wall-clock duration | `strobe:duration_s` | `1.23` |
+| tool args | `strobe:tool_args` | JSON string |
+| tool result | `strobe:tool_result` | JSON string |
+| model name | `strobe:model_name` | `"gemini-2.0-flash"` |
+| tokens in/out | `strobe:input_tokens`, `strobe:output_tokens` | `123`, `456` |
