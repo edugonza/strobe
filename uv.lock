@@ -2782,7 +2782,6 @@ wheels = [
 
 [[package]]
 name = "strobe"
-version = "0.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "google-adk" },
