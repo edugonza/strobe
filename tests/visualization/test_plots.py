@@ -181,9 +181,9 @@ def test_plot_conformance_all_metrics_present():
     bar_trace = next(t for t in fig.data if isinstance(t, go.Bar))
     y_labels = list(bar_trace.y)
     for metric in ("fitness", "precision", "generalization", "simplicity"):
-        assert (
-            metric in y_labels
-        ), f"{metric!r} not found in figure y-labels: {y_labels}"
+        assert metric in y_labels, (
+            f"{metric!r} not found in figure y-labels: {y_labels}"
+        )
 
 
 # ---------------------------------------------------------------------------

@@ -318,7 +318,7 @@ def plot_conformance(scores: dict[str, float]) -> go.Figure:
     """Return a horizontal bar chart of the four conformance metrics."""
     metrics = ["fitness", "precision", "generalization", "simplicity"]
     values = [scores.get(m, 0.0) for m in metrics]
-    colors = [f"rgba({int(255*(1-v))},{int(200*v)},80,0.85)" for v in values]
+    colors = [f"rgba({int(255 * (1 - v))},{int(200 * v)},80,0.85)" for v in values]
 
     fig = go.Figure(
         go.Bar(
