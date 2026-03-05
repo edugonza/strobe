@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
+from typing import Literal
 
 import pandas as pd
+from google.adk import Context
 from google.adk.plugins.base_plugin import BasePlugin
 
 from .event_log import EventLog
@@ -12,16 +14,25 @@ from .event_log import EventLog
 class StrobePlugin(BasePlugin):
     """ADK plugin that captures tool, LLM, and agent callbacks as XES events."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self, case_grouping: Literal["session", "invocation"] = "session"
+    ) -> None:
         super().__init__(name="strobe")
         self._log = EventLog()
         self._pending: dict[tuple, datetime] = {}
+        self._case_grouping = case_grouping
 
     # ── Tool callbacks ──────────────────────────────────────────────────────
 
     async def before_tool_callback(self, tool, tool_args, tool_context):
         key = (tool_context.invocation_id, tool_context.function_call_id)
         self._pending[key] = datetime.now(timezone.utc)
+
+    def _get_case_id(self, context: Context):
+        if self._case_grouping == "session":
+            return context.session.id
+        else:
+            return context.invocation_id
 
     async def after_tool_callback(self, tool, tool_args, tool_context, tool_response):
         key = (tool_context.invocation_id, tool_context.function_call_id)
@@ -44,7 +55,7 @@ class StrobePlugin(BasePlugin):
             attrs["tool_result"] = str(tool_response)
 
         self._log.add_event(
-            case_id=tool_context.invocation_id,
+            case_id=self._get_case_id(tool_context),
             activity=f"tool:{tool.name}",
             timestamp=now,
             **attrs,
@@ -85,7 +96,7 @@ class StrobePlugin(BasePlugin):
 
         activity = f"llm:{model_name}" if model_name else "llm"
         self._log.add_event(
-            case_id=callback_context.invocation_id,
+            case_id=self._get_case_id(callback_context),
             activity=activity,
             timestamp=now,
             **attrs,
@@ -112,7 +123,7 @@ class StrobePlugin(BasePlugin):
             attrs["duration_s"] = duration
 
         self._log.add_event(
-            case_id=callback_context.invocation_id,
+            case_id=self._get_case_id(callback_context),
             activity=f"agent:{agent_name}",
             timestamp=now,
             **attrs,
