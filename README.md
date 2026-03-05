@@ -441,22 +441,7 @@ Contributions are welcome! Please:
 
 ## License
 
-(Add your license here)
-
-## Badge Status
-
-The following badges are currently displayed in this README:
-
-| Badge | Purpose | Status |
-|-------|---------|--------|
-| ![CI/CD Pipeline](https://github.com/edugonza/strobe/actions/workflows/ci.yml/badge.svg?branch=main) | GitHub Actions CI/CD status on main branch | ✅ Active |
-| ![PyPI Version](https://img.shields.io/pypi/v/strobe.svg) | Latest version on PyPI | 📦 When published |
-| ![Python Version](https://img.shields.io/badge/python-3.13+-blue.svg) | Minimum Python version required | ✅ Static |
-| ![License](https://img.shields.io/badge/License-MIT-yellow.svg) | License information | ⏳ Update with actual license |
-
-### Suggested Additional Badges
-
-Consider adding these badges when available:
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Resources
 
