@@ -2,6 +2,12 @@
 
 **Process Mining & Agent Instrumentation for AI Agent Frameworks**
 
+[![CI/CD Pipeline](https://github.com/edugonza/strobe/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/edugonza/strobe/actions/workflows/ci.yml)
+[![PyPI Version](https://img.shields.io/pypi/v/strobe.svg)](https://pypi.org/project/strobe/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/strobe.svg)](https://pypi.org/project/strobe/)
+[![Python Version](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 `strobe` is a Python package that instruments AI agent frameworks to capture execution events and analyze agent behavior using process mining techniques. It helps you understand, visualize, and optimize how your agents execute.
 
 ## Features
@@ -435,6 +441,21 @@ Contributions are welcome! Please:
 ## License
 
 (Add your license here)
+
+## Badge Status
+
+The following badges are currently displayed in this README:
+
+| Badge | Purpose | Status |
+|-------|---------|--------|
+| ![CI/CD Pipeline](https://github.com/edugonza/strobe/actions/workflows/ci.yml/badge.svg?branch=main) | GitHub Actions CI/CD status on main branch | ✅ Active |
+| ![PyPI Version](https://img.shields.io/pypi/v/strobe.svg) | Latest version on PyPI | 📦 When published |
+| ![Python Version](https://img.shields.io/badge/python-3.13+-blue.svg) | Minimum Python version required | ✅ Static |
+| ![License](https://img.shields.io/badge/License-MIT-yellow.svg) | License information | ⏳ Update with actual license |
+
+### Suggested Additional Badges
+
+Consider adding these badges when available:
 
 ## Resources
 
