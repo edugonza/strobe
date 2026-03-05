@@ -11,6 +11,9 @@ dependencies = [
     "plotly>=5.18.0",
 ]
 
+[project.optional-dependencies]
+postgres = ["asyncpg>=0.30"]
+
 [dependency-groups]
 test = [
     "pytest>=9.0.2",

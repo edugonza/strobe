@@ -57,7 +57,7 @@ async def test_tool_event_recorded():
     await plugin.before_tool_callback(tool, tool_args, ctx)
     await plugin.after_tool_callback(tool, tool_args, ctx, {"result": "ok"})
 
-    df = plugin.to_dataframe()
+    df = await plugin.to_dataframe()
     assert len(df) == 1
     assert df.iloc[0][EventLog.ACTIVITY] == "tool:search"
     assert df.iloc[0][EventLog.CASE_ID] == "inv-001"
@@ -72,7 +72,7 @@ async def test_tool_event_has_duration():
     await plugin.before_tool_callback(tool, {}, ctx)
     await plugin.after_tool_callback(tool, {}, ctx, {})
 
-    df = plugin.to_dataframe()
+    df = await plugin.to_dataframe()
     assert "strobe:duration_s" in df.columns
     assert df.iloc[0]["strobe:duration_s"] >= 0.0
 
@@ -86,7 +86,7 @@ async def test_tool_event_has_args_and_result():
     await plugin.before_tool_callback(tool, {"k": "v"}, ctx)
     await plugin.after_tool_callback(tool, {"k": "v"}, ctx, "result_value")
 
-    df = plugin.to_dataframe()
+    df = await plugin.to_dataframe()
     assert "strobe:tool_args" in df.columns
     assert "strobe:tool_result" in df.columns
 
@@ -107,7 +107,7 @@ async def test_multiple_tool_calls_same_case_invocation():
     await plugin.after_tool_callback(tool, {}, ctx2, {})
     await plugin.after_tool_callback(tool, {}, ctx3, {})
 
-    df = plugin.to_dataframe()
+    df = await plugin.to_dataframe()
     assert len(df) == 3
     assert len(df[df[EventLog.CASE_ID] == "inv-001"]) == 2
     assert len(df[df[EventLog.CASE_ID] == "inv-002"]) == 1
@@ -129,7 +129,7 @@ async def test_multiple_tool_calls_same_case_session():
     await plugin.after_tool_callback(tool, {}, ctx2, {})
     await plugin.after_tool_callback(tool, {}, ctx3, {})
 
-    df = plugin.to_dataframe()
+    df = await plugin.to_dataframe()
     assert len(df) == 3
     assert len(df[df[EventLog.CASE_ID] == "session-1"]) == 2
     assert len(df[df[EventLog.CASE_ID] == "session-2"]) == 1
@@ -155,7 +155,7 @@ async def test_llm_event_recorded():
     await plugin.before_model_callback(ctx, llm_request)
     await plugin.after_model_callback(ctx, llm_response)
 
-    df = plugin.to_dataframe()
+    df = await plugin.to_dataframe()
     assert len(df) == 1
     row = df.iloc[0]
     assert row[EventLog.ACTIVITY] == "llm:gemini-2.0-flash"
@@ -179,7 +179,7 @@ async def test_llm_event_tokens():
     await plugin.before_model_callback(ctx, llm_request)
     await plugin.after_model_callback(ctx, llm_response)
 
-    df = plugin.to_dataframe()
+    df = await plugin.to_dataframe()
     assert df.iloc[0]["strobe:input_tokens"] == 123
     assert df.iloc[0]["strobe:output_tokens"] == 456
 
@@ -195,7 +195,7 @@ async def test_agent_event_recorded():
     await plugin.before_agent_callback(ctx)
     await plugin.after_agent_callback(ctx)
 
-    df = plugin.to_dataframe()
+    df = await plugin.to_dataframe()
     assert len(df) == 1
     assert df.iloc[0][EventLog.ACTIVITY] == "agent:root_agent"
     assert df.iloc[0][EventLog.CASE_ID] == "inv-001"
@@ -209,7 +209,7 @@ async def test_agent_event_has_duration():
     await plugin.before_agent_callback(ctx)
     await plugin.after_agent_callback(ctx)
 
-    df = plugin.to_dataframe()
+    df = await plugin.to_dataframe()
     assert df.iloc[0]["strobe:duration_s"] >= 0.0
 
 
@@ -239,7 +239,7 @@ async def test_full_invocation_event_count_session_case_grouping():
     await plugin.after_tool_callback(tool, {}, tool_ctx, {})
     await plugin.after_agent_callback(agent_ctx)
 
-    df = plugin.to_dataframe()
+    df = await plugin.to_dataframe()
     assert len(df) == 3  # llm + tool + agent
     assert (df[EventLog.CASE_ID] == "session-1").all()
 
@@ -263,7 +263,7 @@ async def test_full_invocation_event_count_invocation_case_grouping():
     await plugin.after_tool_callback(tool, {}, tool_ctx, {})
     await plugin.after_agent_callback(agent_ctx)
 
-    df = plugin.to_dataframe()
+    df = await plugin.to_dataframe()
     assert len(df) == 3  # llm + tool + agent
     assert (df[EventLog.CASE_ID] == "inv-A").all()
 
@@ -286,6 +286,6 @@ async def test_write_xes(tmp_path):
     await plugin.after_tool_callback(tool, {}, ctx, {})
 
     xes_file = tmp_path / "out.xes"
-    plugin.write_xes(xes_file)
+    await plugin.write_xes(xes_file)
     assert xes_file.exists()
     assert xes_file.stat().st_size > 0

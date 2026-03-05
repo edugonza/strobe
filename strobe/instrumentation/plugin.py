@@ -8,6 +8,7 @@ import pandas as pd
 from google.adk import Context
 from google.adk.plugins.base_plugin import BasePlugin
 
+from .backends.base import StorageBackend
 from .event_log import EventLog
 
 
@@ -15,10 +16,12 @@ class StrobePlugin(BasePlugin):
     """ADK plugin that captures tool, LLM, and agent callbacks as XES events."""
 
     def __init__(
-        self, case_grouping: Literal["session", "invocation"] = "session"
+        self,
+        case_grouping: Literal["session", "invocation"] = "session",
+        backend: StorageBackend | None = None,
     ) -> None:
         super().__init__(name="strobe")
-        self._log = EventLog()
+        self._log = EventLog(backend=backend)
         self._pending: dict[tuple, datetime] = {}
         self._case_grouping = case_grouping
 
@@ -54,7 +57,7 @@ class StrobePlugin(BasePlugin):
         except (TypeError, ValueError):
             attrs["tool_result"] = str(tool_response)
 
-        self._log.add_event(
+        await self._log.add_event(
             case_id=self._get_case_id(tool_context),
             activity=f"tool:{tool.name}",
             timestamp=now,
@@ -95,7 +98,7 @@ class StrobePlugin(BasePlugin):
                 attrs["output_tokens"] = output_tokens
 
         activity = f"llm:{model_name}" if model_name else "llm"
-        self._log.add_event(
+        await self._log.add_event(
             case_id=self._get_case_id(callback_context),
             activity=activity,
             timestamp=now,
@@ -122,7 +125,7 @@ class StrobePlugin(BasePlugin):
         if duration is not None:
             attrs["duration_s"] = duration
 
-        self._log.add_event(
+        await self._log.add_event(
             case_id=self._get_case_id(callback_context),
             activity=f"agent:{agent_name}",
             timestamp=now,
@@ -135,8 +138,8 @@ class StrobePlugin(BasePlugin):
     def event_log(self) -> EventLog:
         return self._log
 
-    def to_dataframe(self) -> pd.DataFrame:
-        return self._log.to_dataframe()
+    async def to_dataframe(self) -> pd.DataFrame:
+        return await self._log.to_dataframe()
 
-    def write_xes(self, path) -> None:
-        self._log.write_xes(path)
+    async def write_xes(self, path) -> None:
+        await self._log.write_xes(path)
