@@ -1,11 +1,11 @@
 # <img src="assets/logo.svg" alt="strobe logo" width="50" style="vertical-align: middle" /> strobe
 **Process Mining & Agent Instrumentation for AI Agent Frameworks**
 
-[![CI/CD Pipeline](https://github.com/edugonza/strobe/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/edugonza/strobe/actions/workflows/ci.yml)
+[![CI/CD Pipeline](https://github.com/edugonza/strobe/actions/workflows/ci.yml/badge?branch=main)](https://github.com/edugonza/strobe/actions/workflows/ci.yml)
 [![PyPI Version](https://img.shields.io/pypi/v/strobe)](https://pypi.org/project/strobe/)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/strobe.svg)](https://pypi.org/project/strobe/)
-[![Python Version](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/strobe)](https://pypi.org/project/strobe/)
+[![Python Version](https://img.shields.io/badge/python-3.13+-blue)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](https://opensource.org/licenses/MIT)
 
 
 `strobe` is a Python package that instruments AI agent frameworks to capture execution events and analyze agent behavior using process mining techniques. It helps you understand, visualize, and optimize how your agents execute.
