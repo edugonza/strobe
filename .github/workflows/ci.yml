@@ -22,7 +22,7 @@ jobs:
           python-version: "3.13"
 
       - name: Sync dependencies
-        run: uv sync --group test --group dev
+        run: uv sync --group test --group dev --all-extras
 
       - name: Run ruff check
         run: uv run ruff check strobe tests
@@ -48,7 +48,7 @@ jobs:
           python-version: "3.13"
 
       - name: Sync dependencies
-        run: uv sync --group test
+        run: uv sync --group test --all-extras
 
       - name: Run tests
         run: uv run pytest

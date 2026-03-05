@@ -6,6 +6,9 @@ from pathlib import Path
 import pandas as pd
 import pm4py
 
+from .backends.base import StorageBackend
+from .backends.memory import InMemoryBackend
+
 
 class EventLog:
     """Internal accumulator that stores events and exports to XES / DataFrame."""
@@ -14,10 +17,10 @@ class EventLog:
     ACTIVITY = "concept:name"
     TIMESTAMP = "time:timestamp"
 
-    def __init__(self) -> None:
-        self._events: list[dict] = []
+    def __init__(self, backend: StorageBackend | None = None) -> None:
+        self._backend = backend or InMemoryBackend()
 
-    def add_event(
+    async def add_event(
         self,
         case_id: str,
         activity: str,
@@ -37,14 +40,15 @@ class EventLog:
         for key, value in attrs.items():
             namespaced = key if key.startswith("strobe:") else f"strobe:{key}"
             event[namespaced] = value
-        self._events.append(event)
+        await self._backend.append_event(event)
 
-    def to_dataframe(self) -> pd.DataFrame:
+    async def to_dataframe(self) -> pd.DataFrame:
         """Return a pm4py-compatible DataFrame."""
-        if not self._events:
+        events = await self._backend.get_events()
+        if not events:
             df = pd.DataFrame(columns=[self.CASE_ID, self.ACTIVITY, self.TIMESTAMP])
         else:
-            df = pd.DataFrame(self._events)
+            df = pd.DataFrame(events)
         df = pm4py.format_dataframe(
             df,
             case_id=self.CASE_ID,
@@ -53,15 +57,22 @@ class EventLog:
         )
         return df
 
-    def write_xes(self, path: str | Path) -> None:
+    async def write_xes(self, path: str | Path) -> None:
         """Export the log to an XES file at *path*."""
-        pm4py.write_xes(self.to_dataframe(), str(path))
+        df = await self.to_dataframe()
+        pm4py.write_xes(df, str(path))
+
+    async def close(self) -> None:
+        """Close any backend resources."""
+        await self._backend.close()
 
     @classmethod
-    def read_xes(cls, path: str | Path) -> "EventLog":
+    async def read_xes(
+        cls, path: str | Path, backend: StorageBackend | None = None
+    ) -> "EventLog":
         """Load an XES file and return a new :class:`EventLog`."""
         df = pm4py.read_xes(str(path))
-        log = cls()
+        log = cls(backend=backend)
         for _, row in df.iterrows():
             case_id = row[cls.CASE_ID]
             activity = row[cls.ACTIVITY]
@@ -72,5 +83,5 @@ class EventLog:
                 if k not in (cls.CASE_ID, cls.ACTIVITY, cls.TIMESTAMP)
                 and not k.startswith("@@")
             }
-            log.add_event(case_id, activity, timestamp, **extra)
+            await log.add_event(case_id, activity, timestamp, **extra)
         return log
