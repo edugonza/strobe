@@ -1,7 +1,7 @@
 # <img src="assets/logo.svg" alt="strobe logo" width="50" style="vertical-align: middle" /> strobe
 **Process Mining & Agent Instrumentation for AI Agent Frameworks**
 
-[![CI/CD Pipeline](https://github.com/edugonza/strobe/actions/workflows/ci.yml/badge?branch=main)](https://github.com/edugonza/strobe/actions/workflows/ci.yml)
+[![CI/CD Pipeline](https://github.com/edugonza/strobe/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/edugonza/strobe/actions/workflows/ci.yml)
 [![PyPI Version](https://img.shields.io/pypi/v/strobe)](https://pypi.org/project/strobe/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/strobe)](https://pypi.org/project/strobe/)
 [![Python Version](https://img.shields.io/badge/python-3.13+-blue)](https://www.python.org/downloads/)
