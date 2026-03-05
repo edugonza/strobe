@@ -8,18 +8,34 @@ from strobe.instrumentation.event_log import EventLog
 from strobe.instrumentation.plugin import StrobePlugin
 
 
-def _make_tool_context(invocation_id="inv-001", function_call_id="fc-1"):
+def _make_tool_context(
+    invocation_id="inv-001", function_call_id="fc-1", session_id="session-123"
+):
     ctx = SimpleNamespace(
         invocation_id=invocation_id,
         function_call_id=function_call_id,
+        session=SimpleNamespace(
+            id=session_id,
+            state=SimpleNamespace(
+                foo="bar",
+            ),
+        ),
     )
     return ctx
 
 
-def _make_callback_context(invocation_id="inv-001", agent_name="root_agent"):
+def _make_callback_context(
+    invocation_id="inv-001", agent_name="root_agent", session_id="session-123"
+):
     ctx = SimpleNamespace(
         invocation_id=invocation_id,
         agent_name=agent_name,
+        session=SimpleNamespace(
+            id=session_id,
+            state=SimpleNamespace(
+                foo="bar",
+            ),
+        ),
     )
     return ctx
 
@@ -33,7 +49,7 @@ def _make_tool(name="search"):
 
 @pytest.mark.asyncio
 async def test_tool_event_recorded():
-    plugin = StrobePlugin()
+    plugin = StrobePlugin(case_grouping="invocation")
     tool = _make_tool("search")
     tool_args = {"query": "hello"}
     ctx = _make_tool_context()
@@ -76,21 +92,47 @@ async def test_tool_event_has_args_and_result():
 
 
 @pytest.mark.asyncio
-async def test_multiple_tool_calls_same_case():
-    plugin = StrobePlugin()
+async def test_multiple_tool_calls_same_case_invocation():
+    plugin = StrobePlugin(case_grouping="invocation")
     tool = _make_tool("search")
 
-    ctx1 = _make_tool_context(function_call_id="fc-1")
-    ctx2 = _make_tool_context(function_call_id="fc-2")
+    ctx1 = _make_tool_context(invocation_id="inv-001", function_call_id="fc-1")
+    ctx2 = _make_tool_context(invocation_id="inv-001", function_call_id="fc-2")
+    ctx3 = _make_tool_context(invocation_id="inv-002", function_call_id="fc-3")
 
     await plugin.before_tool_callback(tool, {}, ctx1)
     await plugin.before_tool_callback(tool, {}, ctx2)
+    await plugin.before_tool_callback(tool, {}, ctx3)
     await plugin.after_tool_callback(tool, {}, ctx1, {})
     await plugin.after_tool_callback(tool, {}, ctx2, {})
+    await plugin.after_tool_callback(tool, {}, ctx3, {})
 
     df = plugin.to_dataframe()
-    assert len(df) == 2
-    assert (df[EventLog.CASE_ID] == "inv-001").all()
+    assert len(df) == 3
+    assert len(df[df[EventLog.CASE_ID] == "inv-001"]) == 2
+    assert len(df[df[EventLog.CASE_ID] == "inv-002"]) == 1
+
+
+@pytest.mark.asyncio
+async def test_multiple_tool_calls_same_case_session():
+    plugin = StrobePlugin(case_grouping="session")
+    tool = _make_tool("search")
+
+    ctx1 = _make_tool_context(function_call_id="fc-1", session_id="session-1")
+    ctx2 = _make_tool_context(function_call_id="fc-2", session_id="session-1")
+    ctx3 = _make_tool_context(function_call_id="fc-3", session_id="session-2")
+
+    await plugin.before_tool_callback(tool, {}, ctx1)
+    await plugin.before_tool_callback(tool, {}, ctx2)
+    await plugin.before_tool_callback(tool, {}, ctx3)
+    await plugin.after_tool_callback(tool, {}, ctx1, {})
+    await plugin.after_tool_callback(tool, {}, ctx2, {})
+    await plugin.after_tool_callback(tool, {}, ctx3, {})
+
+    df = plugin.to_dataframe()
+    assert len(df) == 3
+    assert len(df[df[EventLog.CASE_ID] == "session-1"]) == 2
+    assert len(df[df[EventLog.CASE_ID] == "session-2"]) == 1
 
 
 # ── LLM callbacks ───────────────────────────────────────────────────────────
@@ -117,7 +159,7 @@ async def test_llm_event_recorded():
     assert len(df) == 1
     row = df.iloc[0]
     assert row[EventLog.ACTIVITY] == "llm:gemini-2.0-flash"
-    assert row[EventLog.CASE_ID] == "inv-001"
+    assert row[EventLog.CASE_ID] == ctx.session.id
 
 
 @pytest.mark.asyncio
@@ -147,7 +189,7 @@ async def test_llm_event_tokens():
 
 @pytest.mark.asyncio
 async def test_agent_event_recorded():
-    plugin = StrobePlugin()
+    plugin = StrobePlugin(case_grouping="invocation")
     ctx = _make_callback_context(agent_name="root_agent")
 
     await plugin.before_agent_callback(ctx)
@@ -175,8 +217,36 @@ async def test_agent_event_has_duration():
 
 
 @pytest.mark.asyncio
-async def test_full_invocation_event_count():
-    plugin = StrobePlugin()
+async def test_full_invocation_event_count_session_case_grouping():
+    plugin = StrobePlugin(case_grouping="session")
+
+    agent_ctx = _make_callback_context(
+        invocation_id="inv-A", agent_name="root_agent", session_id="session-1"
+    )
+    llm_ctx = _make_callback_context(invocation_id="inv-A", session_id="session-1")
+    tool_ctx = _make_tool_context(
+        invocation_id="inv-A", function_call_id="fc-1", session_id="session-1"
+    )
+    tool = _make_tool("calculator")
+
+    await plugin.before_agent_callback(agent_ctx)
+    await plugin.before_model_callback(llm_ctx, SimpleNamespace())
+    await plugin.after_model_callback(
+        llm_ctx,
+        SimpleNamespace(model="gemini", usage_metadata=None),
+    )
+    await plugin.before_tool_callback(tool, {}, tool_ctx)
+    await plugin.after_tool_callback(tool, {}, tool_ctx, {})
+    await plugin.after_agent_callback(agent_ctx)
+
+    df = plugin.to_dataframe()
+    assert len(df) == 3  # llm + tool + agent
+    assert (df[EventLog.CASE_ID] == "session-1").all()
+
+
+@pytest.mark.asyncio
+async def test_full_invocation_event_count_invocation_case_grouping():
+    plugin = StrobePlugin(case_grouping="invocation")
 
     agent_ctx = _make_callback_context(invocation_id="inv-A", agent_name="root_agent")
     llm_ctx = _make_callback_context(invocation_id="inv-A")
