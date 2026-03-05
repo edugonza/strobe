@@ -1,4 +1,5 @@
-# <img src="assets/logo.svg" alt="strobe logo" width="50" style="vertical-align: middle" /> strobe
+# <img src="assets/logo.svg" width="50" align="center" alt="logo"> strobe
+
 **Process Mining & Agent Instrumentation for AI Agent Frameworks**
 
 [![CI/CD Pipeline](https://github.com/edugonza/strobe/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/edugonza/strobe/actions/workflows/ci.yml)
