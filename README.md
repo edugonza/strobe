@@ -372,6 +372,24 @@ uv run pytest -v
 
 All tests pass (49 tests across instrumentation, analysis, and visualization layers).
 
+### Testing Requirements
+
+PostgreSQL backend tests use **testcontainers** to spin up a PostgreSQL container for testing. This requires:
+- **Docker** to be running on your system
+- **testcontainers** and **asyncpg** installed (included in test dependencies)
+
+To skip PostgreSQL backend tests locally (when Docker is unavailable), run:
+```bash
+uv run pytest -k "not postgresql"
+```
+
+Or run only specific test suites:
+```bash
+uv run pytest tests/analysis/ tests/instrumentation/backends/test_memory_backend.py tests/visualization/
+```
+
+In CI/CD environments with Docker available, all 49 tests including PostgreSQL backend tests will run automatically.
+
 ## XES Event Log Format
 
 Events are stored in XES (eXtensible Event Stream) format with the following attribute mapping:

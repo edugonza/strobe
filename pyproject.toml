@@ -18,6 +18,8 @@ postgres = ["asyncpg>=0.30"]
 test = [
     "pytest>=9.0.2",
     "pytest-asyncio>=0.23.0",
+    "testcontainers[postgresql]>=4.0.0",
+    "asyncpg>=0.30",
 ]
 dev = [
     "ruff==0.15.4",

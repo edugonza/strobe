@@ -1,34 +1,59 @@
-"""Tests for PostgreSQLBackend.
+"""Tests for PostgreSQLBackend using testcontainers.
 
-These tests are skipped if asyncpg is not installed or if a PostgreSQL database
-is not available.
+PostgreSQL is spun up in a Docker container for each test session.
+Requires Docker to be running and testcontainers to be installed.
 """
 
-import os
 from datetime import datetime, timezone
 
 import pytest
+from testcontainers.postgres import PostgresContainer
 
 # Skip all tests in this module if asyncpg is not installed
-asyncpg = pytest.importorskip("asyncpg")
+pytest.importorskip("asyncpg")
 
 from strobe.instrumentation.backends.postgresql import PostgreSQLBackend  # noqa: E402
 
 
-@pytest.fixture
-async def pg_dsn():
-    """Get PostgreSQL DSN from environment or use a default."""
-    return os.getenv("TEST_POSTGRES_DSN", "postgresql://localhost/strobe_test")
+@pytest.fixture(scope="session")
+def postgres_container():
+    """Start a PostgreSQL container for the test session.
+
+    Requires Docker to be running.
+    """
+    container = PostgresContainer("postgres:17", driver=None)
+    container.start()
+    yield container
+    container.stop()
 
 
 @pytest.fixture
-async def backend(pg_dsn):
+async def pg_dsn(postgres_container):
+    """Get PostgreSQL DSN from test container.
+
+    Convert the testcontainers URL format to asyncpg-compatible format.
+    """
+    return postgres_container.get_connection_url()
+
+
+@pytest.fixture
+async def backend(pg_dsn, postgres_container):
     """Create a backend and initialize the database."""
     backend = PostgreSQLBackend(pg_dsn, table="test_events")
-    try:
-        await backend.initialize()
-    except Exception as e:
-        pytest.skip(f"PostgreSQL not available: {e}")
+
+    # Drop the table if it exists to start fresh for each test
+    postgres_container.exec(
+        [
+            "psql",
+            "-U",
+            postgres_container.username,
+            "-d",
+            postgres_container.dbname,
+            "-c",
+            f"DROP TABLE IF EXISTS {backend._table};",
+        ]
+    )
+    await backend.initialize()
     yield backend
     await backend.close()
 

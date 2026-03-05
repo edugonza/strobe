@@ -104,7 +104,12 @@ class PostgreSQLBackend(StorageBackend):
                 "concept:name": row["activity"],
                 "time:timestamp": row["timestamp"],
             }
-            attrs = row["attrs"] or {}
+            # asyncpg returns JSONB as dict, but may need parsing if it's a string
+            attrs = row["attrs"]
+            if isinstance(attrs, str):
+                attrs = json.loads(attrs) if attrs else {}
+            else:
+                attrs = attrs or {}
             event.update(attrs)
             events.append(event)
 
