@@ -40,6 +40,7 @@ class PostgreSQLBackend(StorageBackend):
 
     async def initialize(self) -> None:
         """Create the table and indexes."""
+        print("INITIALIZING POSTGRES")
         pool = await self._ensure_pool()
         async with pool.acquire() as conn:
             await conn.execute(

@@ -5,7 +5,6 @@ from datetime import datetime, timezone
 from typing import Literal
 
 import pandas as pd
-from google.adk import Context
 from google.adk.plugins.base_plugin import BasePlugin
 
 from .backends.base import StorageBackend
@@ -31,13 +30,13 @@ class StrobePlugin(BasePlugin):
         key = (tool_context.invocation_id, tool_context.function_call_id)
         self._pending[key] = datetime.now(timezone.utc)
 
-    def _get_case_id(self, context: Context):
+    def _get_case_id(self, context):
         if self._case_grouping == "session":
             return context.session.id
         else:
             return context.invocation_id
 
-    async def after_tool_callback(self, tool, tool_args, tool_context, tool_response):
+    async def after_tool_callback(self, tool, tool_args, tool_context, result):
         key = (tool_context.invocation_id, tool_context.function_call_id)
         start = self._pending.pop(key, None)
         now = datetime.now(timezone.utc)
@@ -53,9 +52,9 @@ class StrobePlugin(BasePlugin):
         except (TypeError, ValueError):
             attrs["tool_args"] = str(tool_args)
         try:
-            attrs["tool_result"] = json.dumps(tool_response)
+            attrs["tool_result"] = json.dumps(result)
         except (TypeError, ValueError):
-            attrs["tool_result"] = str(tool_response)
+            attrs["tool_result"] = str(result)
 
         await self._log.add_event(
             case_id=self._get_case_id(tool_context),
@@ -107,12 +106,12 @@ class StrobePlugin(BasePlugin):
 
     # ── Agent callbacks ──────────────────────────────────────────────────────
 
-    async def before_agent_callback(self, callback_context):
+    async def before_agent_callback(self, callback_context, **kwargs):
         agent_name = getattr(callback_context, "agent_name", "unknown")
         key = (callback_context.invocation_id, f"agent:{agent_name}")
         self._pending[key] = datetime.now(timezone.utc)
 
-    async def after_agent_callback(self, callback_context):
+    async def after_agent_callback(self, callback_context, **kwargs):
         agent_name = getattr(callback_context, "agent_name", "unknown")
         key = (callback_context.invocation_id, f"agent:{agent_name}")
         start = self._pending.pop(key, None)
