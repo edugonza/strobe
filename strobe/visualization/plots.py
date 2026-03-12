@@ -27,12 +27,16 @@ def _hierarchical_layout(G: nx.DiGraph, spacing: float = 2.0) -> dict:
 
     layer_assignment = {}
     queue = deque(sources)
+    visited = set()
 
     for source in sources:
         layer_assignment[source] = 0
 
     while queue:
         node = queue.popleft()
+        if node in visited:
+            continue
+        visited.add(node)
 
         for successor in G.successors(node):
             # Assign to max layer of predecessors + 1
@@ -41,14 +45,11 @@ def _hierarchical_layout(G: nx.DiGraph, spacing: float = 2.0) -> dict:
                 default=-1,
             )
             new_layer = max_pred_layer + 1
-            layer_assignment[successor] = max(
-                layer_assignment.get(successor, -1), new_layer
-            )
+            old_layer = layer_assignment.get(successor, -1)
+            layer_assignment[successor] = max(old_layer, new_layer)
 
-            if (
-                successor not in layer_assignment
-                or layer_assignment[successor] == new_layer
-            ):
+            # Only queue if not yet visited and layer was updated
+            if successor not in visited and new_layer > old_layer:
                 queue.append(successor)
 
     # Group nodes by layer
@@ -71,7 +72,7 @@ def _hierarchical_layout(G: nx.DiGraph, spacing: float = 2.0) -> dict:
     return pos
 
 
-def plot_dfg(dfg: dict, start_activities: dict, end_activities: dict) -> go.Figure:
+def plot_dfg(dfg: dict, start_activities: set, end_activities: set) -> go.Figure:
     """Return an interactive DFG figure.
 
     Edge width and colour encode frequency. Hover shows the frequency count.
@@ -136,6 +137,7 @@ def plot_dfg(dfg: dict, start_activities: dict, end_activities: dict) -> go.Figu
         hovertext=node_hover,
         hoverinfo="text",
         marker=dict(size=20, color=node_colors, line=dict(width=2, color="white")),
+        textfont=dict(color="black", size=12),
         showlegend=False,
     )
 
@@ -227,6 +229,7 @@ def plot_petri_net(net, initial_marking, final_marking) -> go.Figure:
             color=place_colors,
             line=dict(width=2, color="white"),
         ),
+        textfont=dict(color="black", size=12),
         name="Places",
     )
 
@@ -251,6 +254,7 @@ def plot_petri_net(net, initial_marking, final_marking) -> go.Figure:
             color="orange",
             line=dict(width=2, color="white"),
         ),
+        textfont=dict(color="black", size=12),
         name="Transitions",
     )
 

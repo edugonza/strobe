@@ -40,7 +40,6 @@ class PostgreSQLBackend(StorageBackend):
 
     async def initialize(self) -> None:
         """Create the table and indexes."""
-        print("INITIALIZING POSTGRES")
         pool = await self._ensure_pool()
         async with pool.acquire() as conn:
             await conn.execute(
@@ -120,3 +119,7 @@ class PostgreSQLBackend(StorageBackend):
         """Close the connection pool."""
         if self._pool is not None:
             await self._pool.close()
+
+    def to_config(self) -> dict:
+        """Return a serializable dict that can recreate this backend."""
+        return {"backend": "postgresql", "dsn": self._dsn, "table": self._table}

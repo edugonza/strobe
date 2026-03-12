@@ -80,12 +80,12 @@ async def test_add_event_namespaces_attrs_automatically():
     assert "strobe:duration_s" in df.columns
 
 
-async def test_xes_round_trip(tmp_path: Path):
+async def test_parquet_round_trip(tmp_path: Path):
     log = await _make_log()
-    xes_file = tmp_path / "test.xes"
-    await log.write_xes(xes_file)
+    parquet_file = tmp_path / "test.parquet"
+    await log.to_parquet(parquet_file)
 
-    loaded = await EventLog.read_xes(xes_file)
+    loaded = await EventLog().append_parquet(parquet_file)
     df_orig = await log.to_dataframe()
     df_loaded = await loaded.to_dataframe()
 

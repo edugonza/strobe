@@ -1,7 +1,6 @@
 """Tests for process discovery wrappers."""
 
 import pandas as pd
-import pm4py
 import pytest
 
 from strobe.analysis.discovery import discover_dfg, discover_process_model
@@ -26,12 +25,6 @@ def _sample_df() -> pd.DataFrame:
             )
 
     df = pd.DataFrame(rows)
-    df = pm4py.format_dataframe(
-        df,
-        case_id=EventLog.CASE_ID,
-        activity_key=EventLog.ACTIVITY,
-        timestamp_key=EventLog.TIMESTAMP,
-    )
     return df
 
 
@@ -39,8 +32,8 @@ def test_discover_dfg_return_types():
     df = _sample_df()
     dfg, start_acts, end_acts = discover_dfg(df)
     assert isinstance(dfg, dict)
-    assert isinstance(start_acts, dict)
-    assert isinstance(end_acts, dict)
+    assert isinstance(start_acts, set)
+    assert isinstance(end_acts, set)
 
 
 def test_discover_dfg_edges():

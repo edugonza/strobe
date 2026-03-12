@@ -140,5 +140,5 @@ class StrobePlugin(BasePlugin):
     async def to_dataframe(self) -> pd.DataFrame:
         return await self._log.to_dataframe()
 
-    async def write_xes(self, path) -> None:
-        await self._log.write_xes(path)
+    async def write_parquet(self, path) -> None:
+        await self._log.to_parquet(path)

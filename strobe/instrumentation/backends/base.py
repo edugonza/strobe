@@ -25,3 +25,7 @@ class StorageBackend(ABC):
     @abstractmethod
     async def close(self) -> None:
         """Close resources (connections, etc.). Safe to call multiple times."""
+
+    @abstractmethod
+    def to_config(self) -> dict:
+        """Return a serializable dict that can recreate this backend."""

@@ -4,7 +4,6 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
-import pm4py
 
 from .backends.base import StorageBackend
 from .backends.memory import InMemoryBackend
@@ -43,45 +42,31 @@ class EventLog:
         await self._backend.append_event(event)
 
     async def to_dataframe(self) -> pd.DataFrame:
-        """Return a pm4py-compatible DataFrame."""
+        """Return a DataFrame."""
         events = await self._backend.get_events()
         if not events:
             df = pd.DataFrame(columns=[self.CASE_ID, self.ACTIVITY, self.TIMESTAMP])
         else:
             df = pd.DataFrame(events)
-        df = pm4py.format_dataframe(
-            df,
-            case_id=self.CASE_ID,
-            activity_key=self.ACTIVITY,
-            timestamp_key=self.TIMESTAMP,
-        )
         return df
 
-    async def write_xes(self, path: str | Path) -> None:
-        """Export the log to an XES file at *path*."""
+    async def to_parquet(self, path: str | Path) -> None:
+        """Export the log to a parquet file at *path*."""
         df = await self.to_dataframe()
-        pm4py.write_xes(df, str(path))
+        df.to_parquet(path)
+
+    async def append_parquet(self, path: str | Path) -> EventLog:
+        """Load the log from a parquet file at *path*."""
+        df = pd.read_parquet(path)
+        for _, row in df.iterrows():
+            await self.add_event(
+                case_id=row[self.CASE_ID],
+                activity=row[self.ACTIVITY],
+                timestamp=row[self.TIMESTAMP],
+                **row.drop([self.CASE_ID, self.ACTIVITY, self.TIMESTAMP]),
+            )
+        return self
 
     async def close(self) -> None:
         """Close any backend resources."""
         await self._backend.close()
-
-    @classmethod
-    async def read_xes(
-        cls, path: str | Path, backend: StorageBackend | None = None
-    ) -> "EventLog":
-        """Load an XES file and return a new :class:`EventLog`."""
-        df = pm4py.read_xes(str(path))
-        log = cls(backend=backend)
-        for _, row in df.iterrows():
-            case_id = row[cls.CASE_ID]
-            activity = row[cls.ACTIVITY]
-            timestamp = row[cls.TIMESTAMP]
-            extra = {
-                k: v
-                for k, v in row.items()
-                if k not in (cls.CASE_ID, cls.ACTIVITY, cls.TIMESTAMP)
-                and not k.startswith("@@")
-            }
-            await log.add_event(case_id, activity, timestamp, **extra)
-        return log

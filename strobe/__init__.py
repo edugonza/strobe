@@ -11,6 +11,10 @@ from strobe.analysis import (
     throughput_times,
 )
 from strobe.instrumentation import EventLog, StrobePlugin
+from strobe.instrumentation.backends import (
+    load_backend_config,
+    save_backend_config,
+)
 from strobe.visualization import launch_dashboard
 
 __all__ = [
@@ -23,4 +27,6 @@ __all__ = [
     "throughput_times",
     "activity_statistics",
     "launch_dashboard",
+    "save_backend_config",
+    "load_backend_config",
 ]

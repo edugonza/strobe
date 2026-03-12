@@ -5,10 +5,11 @@ description = "Process Mining & Agent Instrumentation for AI Agent Frameworks"
 requires-python = ">=3.13"
 dependencies = [
     "google-adk>=1.0.0",
-    "pm4py>=2.7.0",
     "pandas>=2.0.0",
     "streamlit>=1.32.0",
     "plotly>=5.18.0",
+    "pyyaml>=6.0",
+    "networkx>=3.6.1",
 ]
 
 [project.optional-dependencies]
@@ -25,6 +26,7 @@ dev = [
     "ruff==0.15.4",
     "mypy==1.19.1",
     "pre-commit==4.5.1",
+    "types-PyYAML>=6.0",
 ]
 
 [build-system]
