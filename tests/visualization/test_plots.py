@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 import pandas as pd
-import pm4py
 import plotly.graph_objects as go
 
 from strobe.analysis.discovery import discover_dfg, discover_process_model
@@ -39,12 +38,6 @@ def _sample_df() -> pd.DataFrame:
                 }
             )
     df = pd.DataFrame(rows)
-    df = pm4py.format_dataframe(
-        df,
-        case_id=EventLog.CASE_ID,
-        activity_key=EventLog.ACTIVITY,
-        timestamp_key=EventLog.TIMESTAMP,
-    )
     return df
 
 
@@ -78,12 +71,6 @@ def _perf_df() -> pd.DataFrame:
         },
     ]
     df = pd.DataFrame(rows)
-    df = pm4py.format_dataframe(
-        df,
-        case_id=EventLog.CASE_ID,
-        activity_key=EventLog.ACTIVITY,
-        timestamp_key=EventLog.TIMESTAMP,
-    )
     return df
 
 

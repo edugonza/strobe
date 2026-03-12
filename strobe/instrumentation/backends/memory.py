@@ -19,3 +19,7 @@ class InMemoryBackend(StorageBackend):
 
     async def close(self) -> None:
         """No-op for in-memory backend."""
+
+    def to_config(self) -> dict:
+        """Return a serializable dict that can recreate this backend."""
+        return {"backend": "memory"}

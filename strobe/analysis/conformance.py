@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pandas as pd
-import pm4py
 
 
 def check_conformance(
@@ -23,16 +22,23 @@ def check_conformance(
     -------
     dict with keys ``fitness``, ``precision``, ``generalization``, ``simplicity``.
     """
-    fitness = pm4py.fitness_token_based_replay(df, net, initial_marking, final_marking)
-    precision = pm4py.precision_token_based_replay(
-        df, net, initial_marking, final_marking
-    )
-    generalization = pm4py.generalization_tbr(df, net, initial_marking, final_marking)
-    simplicity = pm4py.simplicity_petri_net(net, initial_marking, final_marking)
+    # fitness = pm4py.fitness_token_based_replay(df, net, initial_marking, final_marking)
+    # precision = pm4py.precision_token_based_replay(
+    #     df, net, initial_marking, final_marking
+    # )
+    # generalization = pm4py.generalization_tbr(df, net, initial_marking, final_marking)
+    # simplicity = pm4py.simplicity_petri_net(net, initial_marking, final_marking)
 
+    # return {
+    #     "fitness": fitness.get("average_trace_fitness", float("nan")),
+    #     "precision": float(precision),
+    #     "generalization": float(generalization),
+    #     "simplicity": float(simplicity),
+    # }
+    # TODO: implement
     return {
-        "fitness": fitness.get("average_trace_fitness", float("nan")),
-        "precision": float(precision),
-        "generalization": float(generalization),
-        "simplicity": float(simplicity),
+        "fitness": 0.0,
+        "precision": 0.0,
+        "generalization": 0.0,
+        "simplicity": 0.0,
     }

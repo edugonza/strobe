@@ -3,7 +3,6 @@
 from datetime import datetime, timedelta, timezone
 
 import pandas as pd
-import pm4py
 import pytest
 
 from strobe.analysis.performance import activity_statistics, throughput_times
@@ -48,12 +47,6 @@ def _make_df() -> pd.DataFrame:
         },
     ]
     df = pd.DataFrame(rows)
-    df = pm4py.format_dataframe(
-        df,
-        case_id=EventLog.CASE_ID,
-        activity_key=EventLog.ACTIVITY,
-        timestamp_key=EventLog.TIMESTAMP,
-    )
     return df
 
 
@@ -114,12 +107,6 @@ def test_activity_statistics_no_duration_col():
         {EventLog.CASE_ID: "c0", EventLog.ACTIVITY: "B", EventLog.TIMESTAMP: base},
     ]
     df = pd.DataFrame(rows)
-    df = pm4py.format_dataframe(
-        df,
-        case_id=EventLog.CASE_ID,
-        activity_key=EventLog.ACTIVITY,
-        timestamp_key=EventLog.TIMESTAMP,
-    )
     stats = activity_statistics(df)
     assert len(stats) == 2
     import math

@@ -422,7 +422,6 @@ Currently supports:
 ## Dependencies
 
 ### Core
-- **pm4py** >= 2.7.0 — Process mining algorithms
 - **pandas** >= 2.0.0 — Data manipulation
 - **networkx** — Graph algorithms
 - **plotly** >= 5.18.0 — Interactive visualizations
@@ -446,6 +445,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Resources
 
 - [Process Mining Overview](https://en.wikipedia.org/wiki/Process_mining)
-- [Petri Nets](https://en.wikipedia.org/wiki/Petri_net)
-- [XES Standard](http://www.xes-standard.org/)
-- [pm4py Documentation](https://pm4py.fit.fraunhofer.de/)
