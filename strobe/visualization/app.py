@@ -77,8 +77,12 @@ def _run_app() -> None:  # pragma: no cover
         if uploaded is not None:
             xes_source = uploaded.read()
         elif env_path:
-            st.info(f"Using env: {env_path}")
-            xes_source = Path(env_path).read_bytes()
+            env_file = Path(env_path).resolve()
+            if env_file.suffix.lower() != ".xes" or not env_file.is_file():
+                st.error("STROBE_XES_PATH must point to an existing .xes file.")
+                st.stop()
+            st.info(f"Using env: {env_file}")
+            xes_source = env_file.read_bytes()
 
         st.header("Discovery")
         algorithm: Literal["inductive", "alpha"] = st.selectbox(
@@ -99,10 +103,10 @@ def _run_app() -> None:  # pragma: no cover
     # ------------------------------------------------------------------
     @st.cache_data(show_spinner="Loading event log…")
     def _load_df(raw: bytes, algo: str, noise: float) -> pd.DataFrame:
-        with tempfile.NamedTemporaryFile(suffix=".xes", delete=False) as f:
+        with tempfile.NamedTemporaryFile(suffix=".xes", delete=True) as f:
             f.write(raw)
-            tmp_path = f.name
-        df = pm4py.read_xes(tmp_path)
+            f.flush()
+            df = pm4py.read_xes(f.name)
         return df
 
     @st.cache_data(show_spinner="Discovering process model…")

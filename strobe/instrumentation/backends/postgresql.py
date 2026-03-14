@@ -3,12 +3,28 @@
 from __future__ import annotations
 
 import json
+import logging
+import re
 from typing import TYPE_CHECKING
 
 from .base import StorageBackend
 
 if TYPE_CHECKING:
     import asyncpg
+
+logger = logging.getLogger(__name__)
+
+_VALID_IDENTIFIER = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]{0,62}$")
+
+
+def _validate_identifier(name: str, label: str = "identifier") -> str:
+    """Raise ValueError if *name* is not a safe SQL identifier."""
+    if not _VALID_IDENTIFIER.match(name):
+        raise ValueError(
+            f"Invalid {label} {name!r}: must start with a letter or underscore "
+            "and contain only letters, digits, or underscores (max 63 chars)."
+        )
+    return name
 
 
 class PostgreSQLBackend(StorageBackend):
@@ -22,7 +38,7 @@ class PostgreSQLBackend(StorageBackend):
             table: Table name to store events (default: "strobe_events")
         """
         self._dsn = dsn
-        self._table = table
+        self._table = _validate_identifier(table, "table")
         self._pool: asyncpg.Pool | None = None
 
     async def _ensure_pool(self):
@@ -40,7 +56,7 @@ class PostgreSQLBackend(StorageBackend):
 
     async def initialize(self) -> None:
         """Create the table and indexes."""
-        print("INITIALIZING POSTGRES")
+        logger.debug("Initializing PostgreSQL backend (table=%r)", self._table)
         pool = await self._ensure_pool()
         async with pool.acquire() as conn:
             await conn.execute(
