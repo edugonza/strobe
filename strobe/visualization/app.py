@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import subprocess
 from pathlib import Path
+from typing import Any
 
 
 def launch_dashboard(xes_path: str | Path | None = None) -> subprocess.Popen:
@@ -38,16 +39,25 @@ def launch_dashboard(xes_path: str | Path | None = None) -> subprocess.Popen:
     )
 
 
-# ---------------------------------------------------------------------------
-# Everything below only runs when this file is executed directly.
-# ---------------------------------------------------------------------------
+def create_app(xes_bytes: bytes | None = None) -> tuple[Any, dict[str, Any]]:
+    """Create and return the Dash application without running it.
 
+    Parameters
+    ----------
+    xes_bytes:
+        Optional raw XES file bytes to pre-load. When *None*, the
+        ``STROBE_XES_PATH`` environment variable is checked as a fallback.
 
-def _run_app() -> None:  # pragma: no cover
+    Returns
+    -------
+    A ``(app, callbacks)`` tuple where *app* is the :class:`dash.Dash`
+    instance and *callbacks* is a dict mapping names to the raw callback
+    functions — useful for unit testing without a browser.
+    """
     import base64
     import hashlib
     import tempfile
-    from typing import Any, Literal, cast
+    from typing import Literal, cast
 
     import dash
     import dash_bootstrap_components as dbc
@@ -98,18 +108,21 @@ def _run_app() -> None:  # pragma: no cover
         return _cache[key]  # type: ignore[return-value]
 
     # ------------------------------------------------------------------
-    # Pre-load from STROBE_XES_PATH env var if set
+    # Resolve initial XES content (env var fallback)
     # ------------------------------------------------------------------
-    env_path = os.environ.get("STROBE_XES_PATH")
+    if xes_bytes is None:
+        env_path = os.environ.get("STROBE_XES_PATH")
+        if env_path:
+            xes_bytes = Path(env_path).read_bytes()
+
     initial_contents: str | None = None
     initial_filename: str | None = None
-    if env_path:
-        raw_init = Path(env_path).read_bytes()
+    if xes_bytes is not None:
         initial_contents = (
             "data:application/octet-stream;base64,"
-            + base64.b64encode(raw_init).decode()
+            + base64.b64encode(xes_bytes).decode()
         )
-        initial_filename = Path(env_path).name
+        initial_filename = "preloaded.xes"
 
     # ------------------------------------------------------------------
     # Layout
@@ -342,6 +355,15 @@ def _run_app() -> None:  # pragma: no cover
 
         return html.Div()
 
+    return app, {
+        "store_xes": _store_xes,
+        "toggle_noise": _toggle_noise,
+        "render_tab": _render_tab,
+    }
+
+
+def _run_app() -> None:  # pragma: no cover
+    app, _ = create_app()
     app.run(debug=False)
 
 
