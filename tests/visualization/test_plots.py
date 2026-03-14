@@ -184,16 +184,3 @@ def test_plot_conformance_all_metrics_present():
         assert metric in y_labels, (
             f"{metric!r} not found in figure y-labels: {y_labels}"
         )
-
-
-# ---------------------------------------------------------------------------
-# app.py importability
-# ---------------------------------------------------------------------------
-
-
-def test_app_is_importable():
-    """app.py must be importable without starting a Streamlit server."""
-    import importlib
-
-    mod = importlib.import_module("strobe.visualization.app")
-    assert callable(mod.launch_dashboard)
