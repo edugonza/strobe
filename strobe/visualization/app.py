@@ -70,6 +70,7 @@ def _run_app() -> None:  # pragma: no cover
         plot_conformance,
         plot_dfg,
         plot_throughput_times,
+        trace_variants_html,
     )
 
     st.set_page_config(page_title="strobe dashboard", layout="wide")
@@ -198,8 +199,22 @@ def _run_app() -> None:  # pragma: no cover
     # ------------------------------------------------------------------
     # Tabs
     # ------------------------------------------------------------------
-    tab_model, tab_throughput, tab_activities, tab_conformance, tab_events = st.tabs(
-        ["Process model", "Throughput", "Activities", "Conformance", "Events"]
+    (
+        tab_model,
+        tab_variants,
+        tab_throughput,
+        tab_activities,
+        tab_conformance,
+        tab_events,
+    ) = st.tabs(
+        [
+            "Process model",
+            "Trace variants",
+            "Throughput",
+            "Activities",
+            "Conformance",
+            "Events",
+        ]
     )
 
     with tab_model:
@@ -210,6 +225,16 @@ def _run_app() -> None:  # pragma: no cover
         with col2:
             st.subheader("Petri Net")
             # st.plotly_chart(plot_petri_net(net, im, fm), use_container_width=True)
+
+    with tab_variants:
+        st.subheader("Trace variants")
+        import streamlit.components.v1 as components
+
+        max_v = st.number_input(
+            "Max variants to display", min_value=5, max_value=500, value=50, step=5
+        )
+        html = trace_variants_html(df, max_variants=int(max_v))
+        components.html(html, height=560, scrolling=False)
 
     with tab_throughput:
         st.subheader("Per-case throughput times")
