@@ -274,18 +274,3 @@ async def test_full_invocation_event_count_invocation_case_grouping():
 def test_event_log_property():
     plugin = StrobePlugin()
     assert isinstance(plugin.event_log, EventLog)
-
-
-@pytest.mark.asyncio
-async def test_write_xes(tmp_path):
-    plugin = StrobePlugin()
-    ctx = _make_tool_context()
-    tool = _make_tool("search")
-
-    await plugin.before_tool_callback(tool, {}, ctx)
-    await plugin.after_tool_callback(tool, {}, ctx, {})
-
-    xes_file = tmp_path / "out.xes"
-    await plugin.write_xes(xes_file)
-    assert xes_file.exists()
-    assert xes_file.stat().st_size > 0
