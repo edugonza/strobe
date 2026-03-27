@@ -326,10 +326,10 @@ async def test_streamlit_app_yaml_config_workflow(postgres_dsn):
         )
 
         # Verify we can perform process discovery on the loaded data
-        dfg, start_acts, end_acts = discover_dfg(df)
-        assert len(dfg) > 0, "DFG should have transitions"
-        assert len(start_acts) > 0, "DFG should have start activities"
-        assert len(end_acts) > 0, "DFG should have end activities"
+        dfg = discover_dfg(df)
+        assert len(dfg.edges) > 0, "DFG should have transitions"
+        assert len(dfg.start_nodes) > 0, "DFG should have start activities"
+        assert len(dfg.end_nodes) > 0, "DFG should have end activities"
 
         await loaded_backend.close()
 

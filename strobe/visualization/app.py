@@ -191,7 +191,7 @@ def _run_app() -> None:  # pragma: no cover
         return df, dfg_result, model_result
 
     source_type = data_source or "parquet"
-    df, (dfg, start_acts, end_acts), (net, im, fm) = _discover(
+    df, dfg, (net, im, fm) = _discover(
         source_type, parquet_source, backend_config_path, algorithm, noise_threshold
     )
 
@@ -206,9 +206,7 @@ def _run_app() -> None:  # pragma: no cover
         col1, col2 = st.columns(2)
         with col1:
             st.subheader("Directly-Follows Graph")
-            st.plotly_chart(
-                plot_dfg(dfg, start_acts, end_acts), use_container_width=True
-            )
+            st.plotly_chart(plot_dfg(dfg), use_container_width=True)
         with col2:
             st.subheader("Petri Net")
             # st.plotly_chart(plot_petri_net(net, im, fm), use_container_width=True)

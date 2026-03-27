@@ -133,6 +133,11 @@ def discover_process_model(
     -------
     (net, initial_marking, final_marking)
     """
+    algorithms = ["inductive", "alpha"]
+    if algorithm not in algorithms:
+        raise ValueError(
+            f"Unknown algorithm: {algorithm!r}. Choose from this list: {algorithms}."
+        )
     # if algorithm == "inductive":
     #     return pm4py.discover_petri_net_inductive(df, noise_threshold=noise_threshold)
     # elif algorithm == "alpha":

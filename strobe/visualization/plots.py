@@ -9,6 +9,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from strobe.analysis.discovery import DFGType
 
 
 def _hierarchical_layout(G: nx.DiGraph, spacing: float = 2.0) -> dict:
@@ -72,15 +73,15 @@ def _hierarchical_layout(G: nx.DiGraph, spacing: float = 2.0) -> dict:
     return pos
 
 
-def plot_dfg(dfg: dict, start_activities: set, end_activities: set) -> go.Figure:
+def plot_dfg(dfg: DFGType) -> go.Figure:
     """Return an interactive DFG figure.
 
     Edge width and colour encode frequency. Hover shows the frequency count.
     """
     G = nx.DiGraph()
-    for (src, tgt), freq in dfg.items():
+    for (src, tgt), freq in dfg.edges.items():
         G.add_edge(src, tgt, freq=freq)
-    for act in list(start_activities) + list(end_activities):
+    for act in list(dfg.start_nodes) + list(dfg.end_nodes):
         if act not in G:
             G.add_node(act)
 
@@ -114,13 +115,13 @@ def plot_dfg(dfg: dict, start_activities: set, end_activities: set) -> go.Figure
         node_x.append(x)
         node_y.append(y)
         node_text.append(node)
-        if node in start_activities and node in end_activities:
+        if node in dfg.start_nodes and node in dfg.end_nodes:
             label = f"{node}<br>(start+end)"
             node_colors.append("purple")
-        elif node in start_activities:
+        elif node in dfg.start_nodes:
             label = f"{node}<br>(start)"
             node_colors.append("green")
-        elif node in end_activities:
+        elif node in dfg.end_nodes:
             label = f"{node}<br>(end)"
             node_colors.append("red")
         else:

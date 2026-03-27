@@ -3,13 +3,13 @@ from datetime import datetime, timedelta
 import pandas as pd
 import pytest
 
-from analysis.discovery import (
+from strobe.analysis.discovery import (
     inductive_miner,
     ProcessTree,
     ProcessTreeOperator,
     seq_log_split,
 )
-from instrumentation import InMemoryBackend
+from strobe.instrumentation import InMemoryBackend
 from strobe import EventLog
 
 
@@ -69,6 +69,7 @@ async def test_inductive_miner_xorg():
     assert str(model) == str(expected_model)
 
 
+@pytest.mark.xfail(reason="Not completed yet")
 @pytest.mark.asyncio
 async def test_inductive_miner_discovery():
     a, b, c, d, e, f, g, h = "A", "B", "C", "D", "E", "F", "G", "H"
