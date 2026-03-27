@@ -17,6 +17,7 @@ from strobe.visualization.plots import (
     plot_dfg,
     plot_petri_net,
     plot_throughput_times,
+    trace_variants_html,
 )
 
 
@@ -173,6 +174,50 @@ def test_plot_conformance_all_metrics_present():
         assert metric in y_labels, (
             f"{metric!r} not found in figure y-labels: {y_labels}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Trace variants HTML
+# ---------------------------------------------------------------------------
+
+
+def test_trace_variants_html_returns_string():
+    df = _sample_df()
+    html = trace_variants_html(df)
+    assert isinstance(html, str)
+    assert "<div" in html
+
+
+def test_trace_variants_html_contains_activities():
+    df = _sample_df()
+    html = trace_variants_html(df)
+    assert "A" in html
+    assert "B" in html
+    assert "C" in html
+
+
+def test_trace_variants_html_sorted_by_frequency():
+    df = _sample_df()
+    html = trace_variants_html(df)
+    # A→B→C appears 2×, A→C appears 1×; "2×" must come before "1×"
+    pos_2 = html.index("2\u00d7")
+    pos_1 = html.index("1\u00d7")
+    assert pos_2 < pos_1
+
+
+def test_trace_variants_html_max_variants():
+    df = _sample_df()
+    html = trace_variants_html(df, max_variants=1)
+    # Only the most frequent variant (A→B→C, 2×) shown; "1×" should not appear
+    assert "2\u00d7" in html
+    assert "1\u00d7" not in html
+
+
+def test_trace_variants_html_empty_df():
+    df = pd.DataFrame(columns=["case:concept:name", "concept:name", "time:timestamp"])
+    html = trace_variants_html(df)
+    assert isinstance(html, str)
+    assert "0 variants" in html
 
 
 # ---------------------------------------------------------------------------

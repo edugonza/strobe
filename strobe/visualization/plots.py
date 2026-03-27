@@ -319,6 +319,109 @@ def plot_activity_statistics(df: pd.DataFrame) -> go.Figure:
     return fig
 
 
+def trace_variants_html(df: pd.DataFrame, max_variants: int = 50) -> str:
+    """Return an HTML string showing trace variants as chevron sequences.
+
+    Variants are grouped by their unique activity sequence and sorted by
+    frequency (descending). Each activity gets a consistent colour across
+    all variants. The returned HTML is self-contained and scrollable.
+    """
+    case_col = "case:concept:name"
+    activity_col = "concept:name"
+    time_col = "time:timestamp"
+
+    sorted_df = df.sort_values([case_col, time_col])
+
+    variants: dict[tuple, int] = {}
+    for _case_id, group in sorted_df.groupby(case_col, sort=False):
+        trace = tuple(group[activity_col].tolist())
+        variants[trace] = variants.get(trace, 0) + 1
+
+    sorted_variants = sorted(variants.items(), key=lambda x: x[1], reverse=True)[
+        :max_variants
+    ]
+
+    all_activities = sorted({act for trace, _ in sorted_variants for act in trace})
+    palette = [
+        "#4E79A7",
+        "#F28E2B",
+        "#E15759",
+        "#76B7B2",
+        "#59A14F",
+        "#EDC948",
+        "#B07AA1",
+        "#FF9DA7",
+        "#9C755F",
+        "#BAB0AC",
+        "#1f77b4",
+        "#ff7f0e",
+        "#2ca02c",
+        "#d62728",
+        "#9467bd",
+        "#8c564b",
+        "#e377c2",
+        "#7f7f7f",
+        "#bcbd22",
+        "#17becf",
+    ]
+    color_map = {act: palette[i % len(palette)] for i, act in enumerate(all_activities)}
+
+    total_cases = sum(count for _, count in sorted_variants)
+    rows_html: list[str] = []
+
+    for i, (trace, count) in enumerate(sorted_variants):
+        pct = 100 * count / total_cases if total_cases > 0 else 0.0
+
+        chevrons: list[str] = []
+        for j, activity in enumerate(trace):
+            color = color_map[activity]
+            z_index = len(trace) - j
+            if j == 0:
+                clip = "polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%)"
+                pl = "12px"
+            else:
+                clip = "polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%)"
+                pl = "20px"
+            chevrons.append(
+                f'<div title="{activity}" style="background:{color};color:#fff;'
+                f"padding:6px 20px 6px {pl};margin-right:-11px;"
+                f"clip-path:{clip};font-size:11px;white-space:nowrap;"
+                f"position:relative;z-index:{z_index};"
+                f'text-shadow:0 1px 2px rgba(0,0,0,.3);cursor:default;">'
+                f"{activity}</div>"
+            )
+
+        row_bg = "#f8f9fa" if i % 2 == 0 else "#ffffff"
+        rows_html.append(
+            f'<div style="display:flex;align-items:center;padding:6px 8px;'
+            f'background:{row_bg};border-bottom:1px solid #e9ecef;">'
+            f'<div style="min-width:90px;font-size:12px;color:#495057;font-weight:600;'
+            f'flex-shrink:0;">{count}\u00d7'
+            f'<span style="font-weight:normal;color:#adb5bd;"> ({pct:.1f}%)</span></div>'
+            f'<div style="display:flex;align-items:center;flex-wrap:nowrap;'
+            f'padding-right:20px;">{"".join(chevrons)}</div>'
+            f"</div>"
+        )
+
+    total_variants = len(variants)
+    shown = len(sorted_variants)
+    suffix = f" (showing top {shown})" if shown < total_variants else ""
+    total_label = f"{total_variants} variant{'s' if total_variants != 1 else ''}"
+    header = (
+        f'<div style="padding:8px 12px;background:#343a40;color:#fff;font-size:13px;'
+        f'border-radius:4px 4px 0 0;">'
+        f"{total_label} · {sum(variants.values())} cases{suffix}</div>"
+    )
+    body = "\n".join(rows_html)
+    return (
+        "<div style=\"font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;"
+        'border:1px solid #dee2e6;border-radius:4px;overflow:hidden;">'
+        f"{header}"
+        f'<div style="overflow-y:auto;max-height:500px;">{body}</div>'
+        "</div>"
+    )
+
+
 def plot_conformance(scores: dict[str, float]) -> go.Figure:
     """Return a horizontal bar chart of the four conformance metrics."""
     metrics = ["fitness", "precision", "generalization", "simplicity"]
