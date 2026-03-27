@@ -4,3 +4,4 @@ __pycache__/
 /.idea/
 strobe/_version.py
 .DS_Store
+.ghcontext
