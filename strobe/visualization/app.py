@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from analysis.traces import group_by_trace_variant
 from strobe import EventLog
 
 
@@ -233,7 +234,7 @@ def _run_app() -> None:  # pragma: no cover
         max_v = st.number_input(
             "Max variants to display", min_value=5, max_value=500, value=50, step=5
         )
-        html = trace_variants_html(df, max_variants=int(max_v))
+        html = trace_variants_html(group_by_trace_variant(df), max_variants=int(max_v))
         components.html(html, height=560, scrolling=False)
 
     with tab_throughput:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict, deque
+from typing import List, Tuple
 
 import networkx as nx
 import pandas as pd
@@ -10,6 +11,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from strobe.analysis.discovery import DFGType
+from visualization.const import COLOR_PALETTE
 
 
 def _hierarchical_layout(G: nx.DiGraph, spacing: float = 2.0) -> dict:
@@ -319,57 +321,27 @@ def plot_activity_statistics(df: pd.DataFrame) -> go.Figure:
     return fig
 
 
-def trace_variants_html(df: pd.DataFrame, max_variants: int = 50) -> str:
+def trace_variants_html(
+    sorted_variants: List[Tuple[Tuple[str], int]], max_variants: int = 50
+) -> str:
     """Return an HTML string showing trace variants as chevron sequences.
 
-    Variants are grouped by their unique activity sequence and sorted by
-    frequency (descending). Each activity gets a consistent colour across
+    Each activity gets a consistent colour across
     all variants. The returned HTML is self-contained and scrollable.
     """
-    case_col = "case:concept:name"
-    activity_col = "concept:name"
-    time_col = "time:timestamp"
+    top_variants = sorted_variants[:max_variants]
 
-    sorted_df = df.sort_values([case_col, time_col])
+    all_activities = sorted({act for trace, _ in top_variants for act in trace})
 
-    variants: dict[tuple, int] = {}
-    for _case_id, group in sorted_df.groupby(case_col, sort=False):
-        trace = tuple(group[activity_col].tolist())
-        variants[trace] = variants.get(trace, 0) + 1
+    color_map = {
+        act: COLOR_PALETTE[i % len(COLOR_PALETTE)]
+        for i, act in enumerate(all_activities)
+    }
 
-    sorted_variants = sorted(variants.items(), key=lambda x: x[1], reverse=True)[
-        :max_variants
-    ]
-
-    all_activities = sorted({act for trace, _ in sorted_variants for act in trace})
-    palette = [
-        "#4E79A7",
-        "#F28E2B",
-        "#E15759",
-        "#76B7B2",
-        "#59A14F",
-        "#EDC948",
-        "#B07AA1",
-        "#FF9DA7",
-        "#9C755F",
-        "#BAB0AC",
-        "#1f77b4",
-        "#ff7f0e",
-        "#2ca02c",
-        "#d62728",
-        "#9467bd",
-        "#8c564b",
-        "#e377c2",
-        "#7f7f7f",
-        "#bcbd22",
-        "#17becf",
-    ]
-    color_map = {act: palette[i % len(palette)] for i, act in enumerate(all_activities)}
-
-    total_cases = sum(count for _, count in sorted_variants)
+    total_cases = sum(count for _, count in top_variants)
     rows_html: list[str] = []
 
-    for i, (trace, count) in enumerate(sorted_variants):
+    for i, (trace, count) in enumerate(top_variants):
         pct = 100 * count / total_cases if total_cases > 0 else 0.0
 
         chevrons: list[str] = []
@@ -403,14 +375,15 @@ def trace_variants_html(df: pd.DataFrame, max_variants: int = 50) -> str:
             f"</div>"
         )
 
-    total_variants = len(variants)
-    shown = len(sorted_variants)
+    total_variants = len(sorted_variants)
+    total_cases = sum(map(lambda x: x[1], sorted_variants))
+    shown = len(top_variants)
     suffix = f" (showing top {shown})" if shown < total_variants else ""
     total_label = f"{total_variants} variant{'s' if total_variants != 1 else ''}"
     header = (
         f'<div style="padding:8px 12px;background:#343a40;color:#fff;font-size:13px;'
         f'border-radius:4px 4px 0 0;">'
-        f"{total_label} · {sum(variants.values())} cases{suffix}</div>"
+        f"{total_label} · {total_cases} cases{suffix}</div>"
     )
     body = "\n".join(rows_html)
     return (
