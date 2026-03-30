@@ -15,7 +15,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from analysis.traces import group_by_trace_variant
+from strobe.analysis.traces import group_by_trace_variant
 from strobe import EventLog
 
 

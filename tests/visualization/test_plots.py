@@ -8,7 +8,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import pytest
 
-from analysis.traces import group_by_trace_variant
+from strobe.analysis.traces import group_by_trace_variant
 from strobe.analysis.discovery import discover_dfg, discover_process_model
 from strobe.analysis.performance import activity_statistics, throughput_times
 from strobe.instrumentation.event_log import EventLog

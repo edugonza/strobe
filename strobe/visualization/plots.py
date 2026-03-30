@@ -11,7 +11,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from strobe.analysis.discovery import DFGType
-from visualization.const import COLOR_PALETTE
+from strobe.visualization.const import COLOR_PALETTE
 
 
 def _hierarchical_layout(G: nx.DiGraph, spacing: float = 2.0) -> dict:
